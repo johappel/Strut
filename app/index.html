@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<META HTTP-EQUIV="Cache-Control" CONTENT="max-age=0">
@@ -7,8 +7,147 @@
 		<META http-equiv="expires" content="0">
 		<META HTTP-EQUIV="Expires" CONTENT="Tue, 01 Jan 1980 1:00:00 GMT">
 		<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
-		<title>Strut - Beta</title>
+		<title>Artothek BETA</title>
+		<script>
+		
+		function loadExposition(filename,sessionMeta) {
+			function getXMLHttpRequest() {
+				if (window.XMLHttpRequest) {
+					return new window.XMLHttpRequest;
+				} else {
+					try {
+						return new ActiveXObject("MSXML2.XMLHTTP");
+					} catch (ex) {
+						return null;
+					}
+				}
+			}
+
+			function handler() {
+				if (oReq.readyState == 4 /* complete */ ) {
+					if (oReq.status == 200) {
+						var item = 'strut-'+filename+'.strut';
+						var obj = JSON.parse(oReq.responseText);
+						obj.fileName = filename;
+						localStorage.setItem(item, JSON.stringify(obj));
+						localStorage.setItem('Strut_sessionMeta',JSON.stringify({
+							"generator_index":sessionMeta.generator_index
+							,"lastPresentation":filename + ".strut"
+						}));
+						localStorage.setItem('Strut_Exposition_Loaded', true);
+						document.location.reload();
+					}
+				}
+			}
+
+			var oReq = getXMLHttpRequest();
+
+			if (oReq != null) {
+				oReq.open("GET", '/exposition/load/', true);
+				oReq.onreadystatechange = handler;
+				oReq.send('format=json&slug='+filename);
+			} else {
+				window.alert("AJAX (XMLHTTP) not supported.");
+			}
+		}
+	
+		function saveExposition(json) {
+			$.ajax({
+						url: '/exposition/save/',
+						type: 'GET',
+						data:{slug:json.fileName, format:'json',data: json},
+						dataType: "json",
+						error: function(index, rec, err) {
+							console.log(err);
+						},
+						success: function(response, obj) {
+							if(response.success){
+								setTimeout(function(){
+									$('#artothek-form').hide();
+								}, 1000);
+							}
+						}
+			});
+		}
+	
+		var artothek ={
+			
+			json: {},
+			
+			displayForm: function(){
+				if($('#artothek-form').length<1){
+					$('.container-fluid').append('<div style="padding:5px;position:absolute; z-index:1000000; left:155px; top:60px; width:390px; height:400px; overflow:auto; background-color:white; border-radius:5px; border:1px solid #ccc" id="artothek-form"></div>');
+					var formContent = $('#editor-form').html();
+					$('#artothek-form').html(formContent);
+					$('#editor-form').remove();
+				}else{
+					$('#artothek-form').show();
+				}
+				artothek.json.fileName = $('#artothek-slug').val(artothek.json.fileName);
+					
+			},
+			saveForm: function(){
+				this.json.name = $('#artothek-name').val();
+				this.json.fileName = $('#artothek-slug').val();
+				this.json.status = $('#artothek-status').val();
+				this.json.description = $('#artothek-description').val();
+				
+				saveExposition(this.json);
+			},
+			
+			inject: function(){
+				$('.dropdown-menu li').first().next().next().append('<li><a onclick="artothek.save()">Für Artothek ...</a></li>');
+				$('.logo-bg').css("background-image","url(http://rpi-artothek.blogs.rpi-virtuell.net/files/2012/09/Blogbanner-rpi-virtuell-artothek-17-09-2012-RFischer.jpg)");
+				$('.logo-bg').css("background-position","-186px 125px");
+			},
+			save: function(){
+				var item = 'strut-'+window.sessionMeta.lastPresentation;
+				artothek.json = JSON.parse(localStorage.getItem(item));
+				//Manipulate teh obj is need
+				setTimeout(artothek.displayForm,500);				
+			},
+			query:function(variable){  
+				var query = window.location.search.substring(1);  
+				var vars = query.split("&");  
+				for (var i=0;i<vars.length;i++) {  
+						var pair = vars[i].split("=");  
+						if(pair[0] == variable){return pair[1];}  
+				}
+				return(false);
+			},
+			run: function(){
+				
+				if(!this.query('load')){
+					return;
+				}else{
+					
+					
+						var filename = artothek.query('load');
+						
+					
+						var sessionMeta = JSON.parse(localStorage.getItem('Strut_sessionMeta'));
+					
+						if(localStorage.getItem('Strut_sessionMeta')){
+							
+
+							if(localStorage.getItem('Strut_Exposition_Loaded')){
+								localStorage.setItem('Strut_sessionMeta' , JSON.stringify({
+									generator_index: sessionMeta.generator_index
+									,lastPresentation: sessionMeta.lastPresentation
+								}));
+								localStorage.removeItem('Strut_Exposition_Loaded');
+								return;
+							}
+						}
+						loadExposition(filename,sessionMeta);
+						
+				}
+			}
+		}
+		artothek.run();
+		</script>
 		<!-- build:css styles/main.css -->
+		
 		<link rel="stylesheet" href="components/bootstrap/css/bootstrap.css"></link>
 		<link rel="stylesheet" href="components/bootstrap/css/bootstrap-responsive.css"></link>
 		<link href='preview_export/css/web-fonts.css' rel='stylesheet' type='text/css'></link>
@@ -20,6 +159,7 @@
 		<link rel="apple-touch-icon-precomposed" href="img/strut-touch.png">
 		<!-- endbuild -->
 		<link rel="stylesheet" type="text/css" href="styles/built.css"></link>
+		
 	</head>
 	<body>
 		<!--[IF IE]>
@@ -40,7 +180,7 @@
 		window.isOptimized = false;
 		if (!Function.prototype.bind) {
 			Function.prototype.bind = function(ctx) {
-		    	var fn;
+				var fn;
     			fn = this;
     			return function() {
       				return fn.apply(ctx, arguments);
@@ -52,6 +192,61 @@
     	<script type="text/javascript" data-main="scripts/main" src="scripts/libs/require.js"></script>
 		<!-- endbuild -->
 		<div id="modals">
+		</div>
+		<script>
+			require(['libs/jquery'], function(  ) {
+				
+				function inject(){
+					if($('.dropdown-menu li').length>0){
+						log('artothek-injection');
+						artothek.inject();
+					}else{
+						setTimeout(inject,300);
+					}
+				}
+				inject();
+			});
+		</script>
+		<div id="editor-form" style="display:none">
+			<form onsubmit="return false;">
+				<fieldset>
+					<legend>Für Artothek Speichern</legend>
+				</fieldset>
+					
+				<table>
+					<tr>
+						<td>Name der Austellung</td>
+						<td><input type="text" name="name" id="artothek-name"></td>
+					</tr>
+					<tr>
+						<td>slug</td>
+						<td><input type="text" name="slug" id="artothek-slug"></td>
+					</tr>
+					<tr>
+						<td>Beschreibung</td>
+						<td>
+							<textarea name="description" id="artothek-description">
+
+							</textarea>
+							<!--<input type="text" name="description" id="artothek-description">-->
+						</td>
+					</tr>
+					<tr>
+						<td>Status</td>
+						<td>
+							<select name="status" id="artothek-status">
+								<option value="draft">Entwurf</option>
+								<option value="private">Privat</option>
+								<option value="published">Öffentlich</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><button onclick="artothek.saveForm()">Speichern</button></td>
+					</tr>
+				</table>
+			</form>
 		</div>
 	</body>
 </html>
