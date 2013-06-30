@@ -38,9 +38,9 @@ define(["./ComponentView", './Mixers'], function(ComponentView, Mixers) {
         ComponentView.prototype.render.call(this);
         //does not work with firefox
 		//object = '<object width="425" height="344"><param name="movie" value="http://www.youtube.com/v/' + this.model.get('shortSrc') + '&hl=en&fs=1"><param name="allowFullScreen" value="true"><embed src="http://www.youtube.com/v/' + this.model.get('shortSrc') + '&hl=en&fs=1" type="application/x-shockwave-flash" allowfullscreen="true" width="425" height="344"></object>';
-        object = '<iframe type="text/html" width="100%" height="400" src="http://www.youtube.com/embed/'+ this.model.get('shortSrc') +'?wmode=transparent"  frameborder="0" wmode="Opaque"/></iframe>';
+        object = '<div style="padding:10px"><iframe type="text/html" width="425" height="344" src="http://www.youtube.com/embed/'+ this.model.get('shortSrc') +'?wmode=transparent"  frameborder="0" wmode="Opaque"/></iframe></div>';
         this.$object = $(object);
-        this.$embed = this.$object.find('embed');
+        this.$embed = this.$object.find('iframe');
         scale = this.model.get("scale");
         if (scale && scale.width) {
           this.$object.attr(scale);
