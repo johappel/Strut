@@ -194,18 +194,15 @@
 		<div id="modals">
 		</div>
 		<script>
-			require(['libs/jquery'], function(  ) {
-				
-				function inject(){
-					if($('.dropdown-menu li').length>0){
-						log('artothek-injection');
-						artothek.inject();
-					}else{
-						setTimeout(inject,300);
-					}
+			function inject(){
+				if((typeof $ != 'undefined') && $('.dropdown-menu li').length>0){
+					log('artothek-injection');
+					artothek.inject();
+				}else{
+					setTimeout(inject,300);
 				}
-				inject();
-			});
+			}
+			inject();
 		</script>
 		<div id="editor-form" style="display:none">
 			<form onsubmit="return false;">
